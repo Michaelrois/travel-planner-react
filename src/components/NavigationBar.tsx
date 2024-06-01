@@ -15,8 +15,9 @@ import AdbIcon from '@mui/icons-material/Adb';
 import avatarImage from '../icons8-circled-u-50.png';
 import { signOut } from 'aws-amplify/auth';
 import { DataStore } from '@aws-amplify/datastore';
-import { UserProfile } from '../models';
+import {UserProfile} from '../models';
 import { getCurrentUser } from 'aws-amplify/auth';
+import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
 
 const pages = [
     {
@@ -58,11 +59,13 @@ const settings = [
     }
 ];
 
+
 function NavigationBar() {
     const [anchorElNav, setAnchorElNav] = React.useState<null | HTMLElement>(null);
     const [anchorElUser, setAnchorElUser] = React.useState<null | HTMLElement>(null);
     const [anchorElProfile, setAnchorElProfile] = React.useState<null | HTMLElement>(null);
     const [hasUserProfile, setHasUserProfile] = React.useState<boolean>(false);
+    const [open, setOpen] = React.useState(false);
 
     React.useEffect(() => {
         const checkUserProfile = async () => {
@@ -84,6 +87,9 @@ function NavigationBar() {
     const handleOpenNavMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorElNav(event.currentTarget);
     };
+    function handleClose() {
+        setOpen(false);
+    }
 
     const handleOpenUserMenu = (event: React.MouseEvent<HTMLElement>) => {
         setAnchorElUser(event.currentTarget);
@@ -105,6 +111,11 @@ function NavigationBar() {
         setAnchorElProfile(null);
     };
 
+    const handleDeleteProfile = () => {
+        handleCloseUserMenu(); // Close the user menu first
+        setOpen(true); // Open the confirm delete dialog
+    };
+
     const profileSubmenu = [
         {
             name: 'Create User Profile',
@@ -115,7 +126,8 @@ function NavigationBar() {
         {
             name: 'Delete User Profile',
             callback: () => {
-                window.location.href = '/delete-profile';
+                handleCloseUserMenu();
+                setOpen(true);
             }
         },
         {
@@ -125,6 +137,23 @@ function NavigationBar() {
             }
         }
     ];
+
+    async function handleConfirmDelete(): Promise<void> {
+        try {
+            const userProfiles = await DataStore.query(UserProfile);
+            if (userProfiles.length > 0) {
+                const toDelete = userProfiles[0]; // Adjust this as needed to target the specific profile
+                await DataStore.delete(toDelete);
+                console.log('User profile deleted successfully');
+            } else {
+                console.log('User profile not found');
+            }
+            handleCloseUserMenu();
+            setOpen(false);
+        } catch (error) {
+            console.error('Error deleting user profile:', error);
+        }
+    }
 
     return (
         <AppBar position="static">
@@ -274,6 +303,13 @@ function NavigationBar() {
                                     </MenuItem>
                                 ))}
                         </Menu>
+                        <ConfirmDeleteDialog
+                            open={open}
+                            onClose={handleClose}
+                            onConfirm={handleConfirmDelete}
+                            aria-labelledby="alert-dialog-title"
+                            aria-describedby="alert-dialog-description"
+                        />
                     </Box>
                 </Toolbar>
             </Container>
