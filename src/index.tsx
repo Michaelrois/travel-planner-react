@@ -281,18 +281,6 @@ const Footer = styled.div`
     border: 0.2px black solid;
 `;
 
-const PrincipalView = styled.div`
-    display: flex;
-    flex-direction: column;
-    height: 90vh;
-`;
-
-const principalView = {
-    display: 'flex',
-    flexDirection: 'column',
-    height: '88.1vh',
-}
-
 // Render the application
 const root = ReactDOM.createRoot(
     document.getElementById('root') as HTMLElement

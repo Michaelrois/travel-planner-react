@@ -38,7 +38,7 @@ exports.trip_detail = asyncHandler(async (req, res, next) => {
 });
 
 // Handle trip create on POST.
-exports.trip_create = asyncHandler(async (req, res) => {
+exports.trip_create = asyncHandler(async (req, res, next   ) => {
     console.log(req.body);
     res.json({
         body: req.body

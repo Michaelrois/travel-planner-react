@@ -19,6 +19,7 @@ import {UserProfile} from '../models';
 import { getCurrentUser } from 'aws-amplify/auth';
 import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
 
+
 const pages = [
     {
         title: 'Editor',
@@ -111,11 +112,6 @@ function NavigationBar() {
         setAnchorElProfile(null);
     };
 
-    const handleDeleteProfile = () => {
-        handleCloseUserMenu(); // Close the user menu first
-        setOpen(true); // Open the confirm delete dialog
-    };
-
     const profileSubmenu = [
         {
             name: 'Create User Profile',
@@ -150,6 +146,7 @@ function NavigationBar() {
             }
             handleCloseUserMenu();
             setOpen(false);
+            window.location.href = '/';
         } catch (error) {
             console.error('Error deleting user profile:', error);
         }

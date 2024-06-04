@@ -1,5 +1,5 @@
 import React, { useState, useRef } from "react";
-import { Box, Typography } from "@mui/material";
+import {Typography } from "@mui/material";
 import CloseTwoToneIcon from "@mui/icons-material/CloseTwoTone";
 import styled from "styled-components";
 import { uploadData } from 'aws-amplify/storage';
