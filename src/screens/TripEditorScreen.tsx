@@ -17,7 +17,7 @@ export const TripEditorScreen = () => {
 }
 
 const TextStlyleH1 = styled.h1`
-    font-size: 3rem;
+    font-size: 2rem;
     margin-bottom: 1rem;
     padding-bottom: 2rem;
     text-align: center;
