@@ -1,4 +1,3 @@
-// src/context/TripContext.tsx
 import React, { createContext, useState, useEffect, useContext } from 'react';
 import { UserTrip } from '../models'; // Assuming you have a type definition for UserTrip
 import { DataStore } from '@aws-amplify/datastore'; // Assuming you're using AWS Amplify
@@ -17,7 +16,6 @@ export const useTripContext = () => {
     }
     return context;
 };
-
 interface TripProviderProps {
     children: React.ReactNode;
 }

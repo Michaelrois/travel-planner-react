@@ -1,0 +1,12 @@
+{
+  "resourceName": "contentstorage",
+  "policyUUID": "66b2aff3",
+  "bucketName": "travelplannerbucket",
+  "storageAccess": "auth",
+  "guestAccess": [],
+  "authAccess": [
+    "CREATE_AND_UPDATE"
+  ],
+  "triggerFunction": "NONE",
+  "groupAccess": {}
+}

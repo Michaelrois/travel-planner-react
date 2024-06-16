@@ -1,0 +1,12 @@
+{
+  "version": 1,
+  "paths": {
+    "/trips": {
+      "name": "/trips",
+      "lambdaFunction": "travelplanner",
+      "permissions": {
+        "setting": "open"
+      }
+    }
+  }
+}

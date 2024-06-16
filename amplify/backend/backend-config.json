@@ -1,5 +1,19 @@
 {
   "api": {
+    "travelplannermike": {
+      "dependsOn": [
+        {
+          "attributes": [
+            "Name",
+            "Arn"
+          ],
+          "category": "function",
+          "resourceName": "travelplanner"
+        }
+      ],
+      "providerPlugin": "awscloudformation",
+      "service": "API Gateway"
+    },
     "travelplannerreact": {
       "dependsOn": [],
       "output": {
@@ -7,7 +21,7 @@
           "additionalAuthenticationProviders": [],
           "defaultAuthentication": {
             "apiKeyConfig": {
-              "apiKeyExpirationDate": "2025-05-15T14:14:43.937Z",
+              "apiKeyExpirationDate": "2025-05-15T14:17:51.201Z",
               "apiKeyExpirationDays": 365,
               "description": ""
             },
@@ -20,7 +34,7 @@
     }
   },
   "auth": {
-    "travelplannerreactee6f29a4": {
+    "travelplannerreact790c3906": {
       "customAuth": false,
       "dependsOn": [],
       "frontendAuthConfig": {
@@ -45,6 +59,59 @@
       },
       "providerPlugin": "awscloudformation",
       "service": "Cognito"
+    }
+  },
+  "function": {
+    "travelplanner": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    },
+    "travelplannerauthCustomMessage": {
+      "build": true,
+      "providerPlugin": "awscloudformation",
+      "service": "Lambda"
+    }
+  },
+  "parameters": {
+    "AMPLIFY_function_travelplanner_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "travelplanner"
+        }
+      ]
+    },
+    "AMPLIFY_function_travelplanner_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "travelplanner"
+        }
+      ]
+    },
+    "AMPLIFY_function_travelplannerauthCustomMessage_deploymentBucketName": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "travelplannerauthCustomMessage"
+        }
+      ]
+    },
+    "AMPLIFY_function_travelplannerauthCustomMessage_s3Key": {
+      "usedBy": [
+        {
+          "category": "function",
+          "resourceName": "travelplannerauthCustomMessage"
+        }
+      ]
+    }
+  },
+  "storage": {
+    "contentstorage": {
+      "dependsOn": [],
+      "providerPlugin": "awscloudformation",
+      "service": "S3"
     }
   }
 }

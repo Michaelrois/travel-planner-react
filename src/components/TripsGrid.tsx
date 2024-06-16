@@ -1,5 +1,12 @@
 import * as React from 'react';
+import styled from "styled-components";
 import Box from '@mui/material/Box';
+import {useTripContext} from "../context/TripContext";
+import AddIcon from '@mui/icons-material/Add';
+import EditIcon from '@mui/icons-material/Edit';
+import DeleteIcon from '@mui/icons-material/DeleteOutlined';
+import SaveIcon from '@mui/icons-material/Save';
+import CancelIcon from '@mui/icons-material/Close';
 import {
     DataGrid,
     GridActionsCellItem,
@@ -12,17 +19,11 @@ import {
 import {
     randomId,
 } from '@mui/x-data-grid-generator';
-import {useTripContext} from "../context/TripContext";
-import AddIcon from '@mui/icons-material/Add';
-import EditIcon from '@mui/icons-material/Edit';
-import DeleteIcon from '@mui/icons-material/DeleteOutlined';
-import SaveIcon from '@mui/icons-material/Save';
-import CancelIcon from '@mui/icons-material/Close';
-import {UserTrip} from "../models";
 import {useEffect, useState} from "react";
 import {DataStore} from "@aws-amplify/datastore";
+import {UserTrip} from "../models";
 import Button from "@mui/material/Button";
-
+import ConfirmDeleteDialog from "./ConfirmDeleteDialog";
 
 interface TripRow {
     id: string;
@@ -32,6 +33,8 @@ interface TripRow {
     date: string | null | undefined;
     image: string | null | undefined;
     isNew?: boolean;
+    title: string | null | undefined;
+    tooltipText: string | null | undefined;
 }
 
 interface EditToolbarProps {
@@ -41,31 +44,78 @@ interface EditToolbarProps {
     ) => void;
 }
 
+const CustomButton = styled(Button)`
+    && {
+        color: #ffffff; // Customize the color here
+        font-size: 1.1rem;
+    }
+`;
+
+const StyledBox = styled(Box)`
+    height: 430px;
+    width: 100%;
+    border: 0.5px solid black;
+
+
+    .MuiDataGrid-row {
+        background-color: rgba(10, 126, 207, 0.25);
+        border-top: 0.2px black solid;
+        border-bottom: 0.2px black solid;
+    }
+
+    .MuiDataGrid-row:hover {
+        color: #0a7ecf;
+    }
+
+    .MuiDataGrid-cell {
+        border-right: 0.2px black solid;
+
+    }
+
+    .MuiDataGrid-toolbarContainer {
+        background-color: #0a7ecf;
+        border-bottom: black 0.3px double;
+    }
+`;
+
 function EditToolbar(props: EditToolbarProps) {
-    const { setRows, setRowModesModel } = props;
+    const {setRows, setRowModesModel} = props;
 
     const handleClick = () => {
         const id = randomId();
-        setRows((oldRows) => [...oldRows, { id, name: '', age: '', isNew: true }]);
+        setRows((oldRows) => [...oldRows, {id, name: '', age: '', isNew: true}]);
         setRowModesModel((oldModel) => ({
             ...oldModel,
-            [id]: { mode: GridRowModes.Edit, fieldToFocus: 'name' },
+            [id]: {mode: GridRowModes.Edit, fieldToFocus: 'name'},
         }));
     };
 
     return (
         <GridToolbarContainer>
-            <Button color="primary" startIcon={<AddIcon />} onClick={handleClick}>
+            <CustomButton startIcon={<AddIcon/>} onClick={handleClick}>
                 Add record
-            </Button>
+            </CustomButton>
         </GridToolbarContainer>
     );
+}
+
+async function resetDataStore() {
+    try {
+        await DataStore.clear();
+        await DataStore.start();
+        const initialTrips = await DataStore.query(UserTrip);
+        console.log('DataStore reset and re-synced:', initialTrips);
+    } catch (error) {
+        console.error('Error resetting DataStore:', error);
+    }
 }
 
 export default function TripsGrid() {
     const {trips} = useTripContext();
     const [rows, setRows] = useState<TripRow[]>([]);
-    const [rowModesModel, setRowModesModel] = useState<GridRowModesModel>({});
+    const [rowModesModel, setRowModesModel] = React.useState<GridRowModesModel>({});
+    const [open, setOpen] = useState(false);
+    const [rowToDelete, setRowToDelete] = useState<GridRowId | null>(null);
 
     useEffect(() => {
         const initialRows: TripRow[] = trips.map(trip => ({
@@ -75,6 +125,8 @@ export default function TripsGrid() {
             location: trip.location,
             date: trip.date,
             image: trip.image,
+            title: trip.title,
+            tooltipText: trip.tooltipText
         }));
         setRows(initialRows);
     }, [trips, setRows]);
@@ -83,7 +135,7 @@ export default function TripsGrid() {
         {
             field: 'id',
             headerName: 'ID',
-            width: 325,
+            width: 320,
         },
         {
             field: 'name',
@@ -100,20 +152,32 @@ export default function TripsGrid() {
         {
             field: 'location',
             headerName: 'Location',
-            width: 175,
+            width: 150,
             editable: true,
         },
         {
             field: 'date',
             headerName: 'Date',
             editable: true,
-            width: 260
+            width: 220,
         },
         {
             field: 'image',
             headerName: 'Image',
             editable: true,
-            width: 160
+            width: 150,
+        },
+        {
+            field: 'title',
+            headerName: 'Title',
+            editable: true,
+            width: 200,
+        },
+        {
+            field: 'tooltipText',
+            headerName: 'TooltipText',
+            editable: true,
+            width: 278,
         },
         {
             field: 'actions',
@@ -163,13 +227,14 @@ export default function TripsGrid() {
         },
     ];
 
+
     const handleRowEditStop: GridEventListener<'rowEditStop'> = (params, event) => {
         if (params.reason === GridRowEditStopReasons.rowFocusOut) {
             event.defaultMuiPrevented = true;
         }
     };
-
     const handleEditClick = (id: GridRowId) => () => {
+
         setRowModesModel({...rowModesModel, [id]: {mode: GridRowModes.Edit}});
     };
 
@@ -177,25 +242,28 @@ export default function TripsGrid() {
         setRowModesModel({...rowModesModel, [id]: {mode: GridRowModes.View}});
     };
 
-    const handleDeleteClick = (id: GridRowId) => async () => {
-        const toDelete = await DataStore.query(UserTrip, id.toString());
-        if (toDelete) {
-            await DataStore.delete(toDelete);
-        }
-
-        setRows(rows.filter((row) => row.id !== id));
+    const handleClickOpen = (id: GridRowId) => {
+        setRowToDelete(id);
+        setOpen(true);
+    };
+    const handleClose = () => {
+        setOpen(false);
+        setRowToDelete(null);
     };
 
-    const handleCancelClick = (id: GridRowId) => () => {
-        setRowModesModel({
-            ...rowModesModel,
-            [id]: {mode: GridRowModes.View, ignoreModifications: true},
-        });
-
-        const editedRow = rows.find((row) => row.id === id);
-        if (editedRow!.isNew) {
-            setRows(rows.filter((row) => row.id !== id));
+    const handleConfirmDelete = async () => {
+        if (rowToDelete !== null) {
+            const toDelete = await DataStore.query(UserTrip, rowToDelete.toString());
+            if (toDelete) {
+                await DataStore.delete(toDelete);
+                setRows(rows.filter((row) => row.id !== rowToDelete));
+            }
+            handleClose();
         }
+    };
+
+    const handleDeleteClick = (id: GridRowId) => () => {
+        handleClickOpen(id);
     };
 
     const addOrUpdateTrip = async (newRow: GridRowModel) => {
@@ -229,46 +297,82 @@ export default function TripsGrid() {
             console.log(e);
         }
     }
-
     const processRowUpdate = async (newRow: GridRowModel) => {
         await addOrUpdateTrip(newRow);
 
-        const updatedRow = { ...newRow, isNew: false } as TripRow;
+        const updatedRow = {...newRow, isNew: false} as TripRow;
         setRows(rows.map((row) => (row.id === newRow.id ? updatedRow : row)));
         return updatedRow;
     };
-
     const handleRowModesModelChange = (newRowModesModel: GridRowModesModel) => {
         setRowModesModel(newRowModesModel);
     };
+    const handleCancelClick = (id: GridRowId) => () => {
+        setRowModesModel({
+            ...rowModesModel,
+            [id]: {mode: GridRowModes.View, ignoreModifications: true},
+        });
+
+        const editedRow = rows.find((row) => row.id === id);
+        if (editedRow!.isNew) {
+            setRows(rows.filter((row) => row.id !== id));
+        }
+    }
+
+    const handleResetDataStore = async () => {
+        await resetDataStore();
+        const trips = await DataStore.query(UserTrip);
+        setRows(trips.map(trip => ({
+            id: trip.id,
+            name: trip.name,
+            description: trip.description,
+            location: trip.location,
+            date: trip.date,
+            image: trip.image,
+            title: trip.title,
+            tooltipText: trip.tooltipText
+        })));
+    };
 
     return (
-        <Box sx={{height: 400, width: '100%'}}>
-            <DataGrid
-                rows={rows}
-                columns={columns}
-                initialState={{
-                    pagination: {
-                        paginationModel: {
-                            pageSize: 5,
+        <>
+
+            <StyledBox>
+                <DataGrid
+                    rows={rows}
+                    columns={columns}
+                    initialState={{
+                        pagination: {
+                            paginationModel: {
+                                pageSize: 5,
+                            },
                         },
-                    },
-                }}
-                pageSizeOptions={[5]}
-                checkboxSelection
-                disableRowSelectionOnClick
-                editMode="row"
-                rowModesModel={rowModesModel}
-                onRowModesModelChange={handleRowModesModelChange}
-                onRowEditStop={handleRowEditStop}
-                processRowUpdate={processRowUpdate}
-                slots={{
-                    toolbar: EditToolbar as GridSlots['toolbar'],
-                }}
-                slotProps={{
-                    toolbar: { setRows, setRowModesModel },
-                }}
+                    }}
+                    pageSizeOptions={[5]}
+                    checkboxSelection
+                    disableRowSelectionOnClick
+                    editMode="row"
+                    rowModesModel={rowModesModel}
+                    onRowModesModelChange={handleRowModesModelChange}
+                    onRowEditStop={handleRowEditStop}
+                    processRowUpdate={processRowUpdate}
+                    slots={{
+                        toolbar: EditToolbar as GridSlots['toolbar'],
+                    }}
+                    slotProps={{
+                        toolbar: {setRows, setRowModesModel},
+                    }}
+                />
+            </StyledBox>
+            <ConfirmDeleteDialog
+                open={open}
+                onClose={handleClose}
+                onConfirm={handleConfirmDelete}
+                aria-labelledby="alert-dialog-title"
+                aria-describedby="alert-dialog-description"
             />
-        </Box>
+            <Button onClick={handleResetDataStore}>Reset DataStore</Button>
+        </>
     );
 }
+
