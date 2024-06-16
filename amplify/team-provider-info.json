@@ -112,5 +112,41 @@
         "contentstorage": {}
       }
     }
+  },
+  "sandbox": {
+    "awscloudformation": {
+      "AuthRoleName": "amplify-travelplannerreact-sandbox-9ea09-authRole",
+      "UnauthRoleArn": "arn:aws:iam::767397833258:role/amplify-travelplannerreact-sandbox-9ea09-unauthRole",
+      "AuthRoleArn": "arn:aws:iam::767397833258:role/amplify-travelplannerreact-sandbox-9ea09-authRole",
+      "Region": "us-east-1",
+      "DeploymentBucketName": "amplify-travelplannerreact-sandbox-9ea09-deployment",
+      "UnauthRoleName": "amplify-travelplannerreact-sandbox-9ea09-unauthRole",
+      "StackName": "amplify-travelplannerreact-sandbox-9ea09",
+      "StackId": "arn:aws:cloudformation:us-east-1:767397833258:stack/amplify-travelplannerreact-sandbox-9ea09/3a9af4d0-2c34-11ef-a4f9-0ec47f958301",
+      "AmplifyAppId": "d2ykk6hivh68hs"
+    },
+    "categories": {
+      "auth": {
+        "travelplannerreact790c3906": {},
+        "travelplannerauth": {}
+      },
+      "function": {
+        "travelplanner": {
+          "deploymentBucketName": "amplify-travelplannerreact-sandbox-9ea09-deployment",
+          "s3Key": "amplify-builds/travelplanner-444b4d765a3778446a4f-build.zip"
+        },
+        "travelplannerauthCustomMessage": {
+          "deploymentBucketName": "amplify-travelplannerreact-sandbox-9ea09-deployment",
+          "s3Key": "amplify-builds/travelplannerauthCustomMessage-3363774e4b4772493462-build.zip"
+        }
+      },
+      "api": {
+        "travelplannermike": {},
+        "travelplannerreact": {}
+      },
+      "storage": {
+        "contentstorage": {}
+      }
+    }
   }
 }
