@@ -278,7 +278,7 @@ const Footer = styled.div`
     width: 100%;
     color: #ffffff;
     background-color: #0a7ecf;
-    border: 0.3px black solid;
+    border: 0.4px black solid;
 `;
 
 // Render the application
